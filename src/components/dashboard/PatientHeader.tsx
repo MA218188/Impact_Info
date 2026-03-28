@@ -5,14 +5,7 @@ const PatientHeader = () => {
     <header className="glass-panel-strong rounded-t-2xl px-6 py-4">
       {/* Top row */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button className="p-1.5 rounded-lg hover:bg-secondary/60 transition-colors">
-            <Menu className="w-5 h-5 text-foreground/70" />
-          </button>
-          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Patients
-          </span>
-        </div>
+        <div />
 
         <div className="flex items-center gap-6">
           <div>
