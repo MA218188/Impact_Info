@@ -41,15 +41,18 @@ interface NoteData {
   date: string;
   doctor: string;
   fullNote: string;
+  medications: string[];
+  labs: { label: string; value: string }[];
+  imaging: string[];
 }
 
 const notesData: NoteData[] = [
-  { date: "Jan 20, 2024", doctor: "Dr Hofer", fullNote: "Patient reports increasing dyspnoea on exertion over 2 weeks. No orthopnoea. Chest clear on auscultation. Consider echo referral." },
-  { date: "Feb 8, 2024", doctor: "Dr Hofer", fullNote: "Bilateral ankle oedema noted. Pitting 2+. Weight up 3kg from baseline. Started furosemide 40mg. Referred cardiology." },
-  { date: "Apr 10, 2024", doctor: "Dr Reiter", fullNote: "Patient stable on current regime. eGFR 64 — mild decline. Continue monitoring renal function. Review in 3 months." },
-  { date: "Jun 5, 2024", doctor: "Dr Hofer", fullNote: "Fatigue worsening over past month. Started spironolactone 25mg for HF. Monitor potassium closely given concurrent Ramipril." },
-  { date: "Sep 22, 2024", doctor: "Dr Reiter", fullNote: "Dizziness on standing. K+ 5.4 — rising trend. Consider stopping spironolactone. Check renal function urgently." },
-  { date: "Oct 18, 2024", doctor: "Dr Hofer", fullNote: "Urgent medication review. K+ elevated at 5.4. eGFR 57 — CKD Stage 3a. Coordinating with cardiology. Consider stopping spironolactone and ibuprofen." },
+  { date: "Jan 20, 2024", doctor: "Dr Hofer", fullNote: "Patient reports increasing dyspnoea on exertion over 2 weeks. No orthopnoea. Chest clear on auscultation. Consider echo referral.", medications: ["Ramipril 5mg", "Metformin 1000mg"], labs: [{ label: "eGFR", value: "68 mL/min" }, { label: "K+", value: "4.2 mmol/L" }], imaging: [] },
+  { date: "Feb 8, 2024", doctor: "Dr Hofer", fullNote: "Bilateral ankle oedema noted. Pitting 2+. Weight up 3kg from baseline. Started furosemide 40mg. Referred cardiology.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg"], labs: [{ label: "HbA1c", value: "7.2%" }], imaging: ["Echo — EF 42%, mild LV dysfunction"] },
+  { date: "Apr 10, 2024", doctor: "Dr Reiter", fullNote: "Patient stable on current regime. eGFR 64 — mild decline. Continue monitoring renal function. Review in 3 months.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg"], labs: [{ label: "eGFR", value: "64 mL/min" }, { label: "K+", value: "4.5 mmol/L" }], imaging: [] },
+  { date: "Jun 5, 2024", doctor: "Dr Hofer", fullNote: "Fatigue worsening over past month. Started spironolactone 25mg for HF. Monitor potassium closely given concurrent Ramipril.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg", "Spironolactone 25mg"], labs: [{ label: "eGFR", value: "61 mL/min" }], imaging: ["CXR — mild cardiomegaly, no pleural effusion"] },
+  { date: "Sep 22, 2024", doctor: "Dr Reiter", fullNote: "Dizziness on standing. K+ 5.4 — rising trend. Consider stopping spironolactone. Check renal function urgently.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg", "Spironolactone 25mg"], labs: [{ label: "eGFR", value: "57 mL/min" }, { label: "K+", value: "5.4 mmol/L" }], imaging: [] },
+  { date: "Oct 18, 2024", doctor: "Dr Hofer", fullNote: "Urgent medication review. K+ elevated at 5.4. eGFR 57 — CKD Stage 3a. Coordinating with cardiology. Consider stopping spironolactone and ibuprofen.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg", "Spironolactone 25mg", "Ibuprofen PRN"], labs: [{ label: "eGFR", value: "57 mL/min" }, { label: "K+", value: "5.4 mmol/L" }, { label: "HbA1c", value: "6.9%" }], imaging: ["CT Abdomen — renal cortical thinning bilateral"] },
 ];
 
 const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) => {
