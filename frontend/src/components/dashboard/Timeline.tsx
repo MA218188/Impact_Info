@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { DataLayerKey } from "@/pages/Index";
+import { fetchManifest } from "@/lib/api";
 import {
   Tooltip,
   TooltipContent,
@@ -16,26 +18,100 @@ import {
 
 interface Props {
   visibleLayers: Record<DataLayerKey, boolean>;
-  activeTimeScale: string;
-  onTimeScaleChange: (scale: string) => void;
+  selectedPatient: number;
+  gridX?: number[];
 }
 
-const timeScales = ["1M", "3M", "12M", "3Y", "All"];
-
-const MONTHS_X = [117, 175, 233, 291, 349, 407, 465, 523, 581, 639, 694, 738];
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const GRID_X = [88, 146, 204, 262, 320, 378, 436, 494, 552, 610, 668, 720];
+// Mock x-axis (Jan–Dec for draft patients)
+const GRID_X = [55, 146, 204, 262, 320, 378, 436, 494, 552, 610, 668, 720];
+const LABEL_COL_W = 55;
+const LABEL_FILL = "hsl(220 15% 96%)";
+const LABEL_TEXT = "#5f5e57";
+const TRACK_DIVIDER = "hsl(220 15% 86%)";
+const GRID_STROKE = "hsl(220 15% 88%)";
+const GRID_DASH = "3 3";
 
 const LANE_TOP = {
-  hrSpo2: 22,
-  visits: 80,
-  alerts: 145,
-  medications: 200,
-  labs: 290,
-  imaging: 380,
-  notes: 450,
+  visits: 8,
+  alerts: 79,
+  medications: 134,
+  labs: 224,
+  imaging: 314,
+  notes: 384,
 };
-const SVG_H = 540;
+const SVG_H = 480;
+
+const LANE_CENTER = {
+  visits: LANE_TOP.visits + 22,
+  alerts: LANE_TOP.alerts + 16,
+  medications: LANE_TOP.medications + 34,
+  labs: LANE_TOP.labs + 34,
+  imaging: LANE_TOP.imaging + 24,
+  notes: LANE_TOP.notes + 30,
+};
+
+// SVG x range for data
+const X_START = 88;
+const X_END = 720;
+const X_WIDTH = X_END - X_START;
+
+const CARDIO_VISITS = [
+  { x: 105, date: "Jan 15, 2024", notes: "Routine follow-up. ECG normal sinus rhythm. BP 138/82." },
+  { x: 286, date: "Apr 10, 2024", notes: "Stable. Continue current meds. Watch renal function closely." },
+  { x: 540, date: "Sep 22, 2024", notes: "Dizziness reported. K+ rising. Consider stopping spironolactone." },
+] as const;
+
+const GP_VISITS = [
+  { x: 160, date: "Feb 8, 2024", notes: "Ankle oedema noted. Referred to cardiology. Adjusted diuretic." },
+  { x: 366, date: "Jun 5, 2024", notes: "Fatigue increasing. Started spironolactone 25mg." },
+  { x: 610, date: "Oct 18, 2024", notes: "Urgent: review meds. K+ elevated. Coordinating with cardiology." },
+] as const;
+
+const EGFR_POINTS = [
+  { x: 117, y: LANE_TOP.labs + 25, value: "68", label: "eGFR — Estimated Glomerular Filtration Rate. Normal >60. Measures kidney function." },
+  { x: 300, y: LANE_TOP.labs + 30, value: "64", label: "eGFR — Declining from 68. Mild impairment." },
+  { x: 460, y: LANE_TOP.labs + 35, value: "61", label: "eGFR — Borderline. Approaching CKD Stage 3." },
+  { x: 636, y: LANE_TOP.labs + 42, value: "57", label: "eGFR — Below 60. CKD Stage 3a. Urgent review." },
+] as const;
+
+const IMAGING_EVENTS = [
+  { x: 155, label: "Echo", sub: "Feb" },
+  { x: 456, label: "CXR", sub: "Jul" },
+  { x: 630, label: "CT", sub: "Oct" },
+] as const;
+
+const NOTE_EVENTS = [
+  { x: 123, fill: "#E1F5EE", stroke: "#0F6E56", textColor: "#085041", label: "dyspnoea on exertion", noteIndex: 0 },
+  { x: 195, fill: "#FAEEDA", stroke: "#854F0B", textColor: "#633806", label: "ankle oedema", noteIndex: 1 },
+  { x: 304, fill: "#E1F5EE", stroke: "#0F6E56", textColor: "#085041", label: "stable, watch renal", noteIndex: 2 },
+  { x: 400, fill: "#FAEEDA", stroke: "#854F0B", textColor: "#633806", label: "fatigue · spiro", noteIndex: 3 },
+  { x: 558, fill: "#E1F5EE", stroke: "#0F6E56", textColor: "#085041", label: "dizzy · K+ rising", noteIndex: 4 },
+  { x: 645, fill: "#FAEEDA", stroke: "#854F0B", textColor: "#633806", label: "review meds", noteIndex: 5 },
+] as const;
+
+function timeToX(ms: number, minMs: number, maxMs: number): number {
+  if (maxMs === minMs) return X_START;
+  return X_START + ((ms - minMs) / (maxMs - minMs)) * X_WIDTH;
+}
+
+
+function generateXTicks(
+  minMs: number,
+  maxMs: number
+): { x: number; label: string }[] {
+  const durationDays = (maxMs - minMs) / 86400000;
+  const intervalDays = durationDays <= 7 ? 1 : durationDays <= 35 ? 7 : 14;
+  const intervalMs = intervalDays * 86400000;
+  const ticks: { x: number; label: string }[] = [];
+  // Snap start to nearest interval boundary
+  const firstTick = Math.ceil(minMs / intervalMs) * intervalMs;
+  for (let t = firstTick; t <= maxMs; t += intervalMs) {
+    const d = new Date(t);
+    const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    ticks.push({ x: timeToX(t, minMs, maxMs), label });
+  }
+  return ticks;
+}
 
 interface NoteData {
   date: string;
@@ -55,97 +131,123 @@ const notesData: NoteData[] = [
   { date: "Oct 18, 2024", doctor: "Dr Hofer", fullNote: "Urgent medication review. K+ elevated at 5.4. eGFR 57 — CKD Stage 3a. Coordinating with cardiology. Consider stopping spironolactone and ibuprofen.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg", "Spironolactone 25mg", "Ibuprofen PRN"], labs: [{ label: "eGFR", value: "57 mL/min" }, { label: "K+", value: "5.4 mmol/L" }, { label: "HbA1c", value: "6.9%" }], imaging: ["CT Abdomen — renal cortical thinning bilateral"] },
 ];
 
-const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) => {
+const Timeline = ({ visibleLayers, selectedPatient, gridX }: Props) => {
   const [selectedNote, setSelectedNote] = useState<NoteData | null>(null);
+  const isRealPatient = selectedPatient === 0;
 
+  // Fetch real sensor data only for Müller (patient 0)
+  const { data: manifest } = useQuery({
+    queryKey: ["manifest"],
+    queryFn: fetchManifest,
+    enabled: isRealPatient,
+    staleTime: 300_000,
+    retry: false,
+  });
+  // Compute derived values for real data
+  const minMs = manifest?.timeBounds.minStartMs ?? 0;
+  const maxMs = manifest?.timeBounds.maxEndMs ?? 0;
+  const hasRealSensor = isRealPatient && !!manifest;
+
+  const xTicks = hasRealSensor ? generateXTicks(minMs, maxMs) : null;
+  const verticalGridX = gridX?.length
+    ? gridX
+    : xTicks?.map((t) => t.x) ?? GRID_X;
   return (
     <TooltipProvider delayDuration={200}>
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Time controls */}
-        <div className="flex items-center gap-2 px-5 py-2 border-b border-border/60">
-          <div className="flex bg-secondary/60 rounded-lg p-[2px] gap-[1px] border border-border/60">
-            {timeScales.map((s) => (
-              <button
-                key={s}
-                onClick={() => onTimeScaleChange(s)}
-                className={`text-[11px] px-2.5 py-[3px] rounded-md transition-all ${
-                  activeTimeScale === s
-                    ? "bg-white text-foreground font-medium border border-border/60 shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-          <div className="flex-1" />
-          <span className="text-[11px] text-muted-foreground">Jan 2024 – Mar 2025</span>
-        </div>
-
+      <div className="flex flex-col min-w-0">
         {/* SVG Timeline */}
-        <div className="flex-1 overflow-hidden relative">
+        <div className="w-full">
           <svg
-            className="w-full h-full"
+            className="block w-full"
             viewBox={`0 0 760 ${SVG_H}`}
             xmlns="http://www.w3.org/2000/svg"
-            preserveAspectRatio="xMidYMid meet"
           >
             {/* Lane label bg */}
-            <rect x="0" y="0" width="88" height={SVG_H} fill="hsl(220 15% 96%)" opacity="0.5" />
+            <rect x="0" y="0" width={LABEL_COL_W} height={SVG_H} fill={LABEL_FILL} />
 
             {/* Grid lines */}
-            {GRID_X.map((x) => (
-              <line key={x} x1={x} y1="22" x2={x} y2={SVG_H - 10} stroke="hsl(220 15% 90%)" strokeWidth="0.5" />
+            {verticalGridX.map((x) => (
+              <line
+                key={x}
+                x1={x}
+                y1={0}
+                x2={x}
+                y2={SVG_H}
+                stroke={GRID_STROKE}
+                strokeWidth="0.9"
+                strokeDasharray={GRID_DASH}
+              />
             ))}
 
-            {/* Month labels */}
-            {MONTHS.map((m, i) => (
-              <text key={m} x={MONTHS_X[i]} y="14" textAnchor="middle" fontSize="10" fill="#888780" fontFamily="inherit">
-                {m}
-              </text>
-            ))}
+            {/* Maintain a continuous y-axis label seam across stacked sections */}
+            <line x1={LABEL_COL_W} y1={0} x2={LABEL_COL_W} y2={SVG_H} stroke={TRACK_DIVIDER} strokeWidth="1" />
 
             {/* Lane separators */}
             {Object.values(LANE_TOP).map((y) => (
-              <line key={y} x1="0" y1={y} x2="760" y2={y} stroke="hsl(220 15% 90%)" strokeWidth="0.5" />
+              <line key={y} x1="0" y1={y} x2="760" y2={y} stroke={TRACK_DIVIDER} strokeWidth="0.8" />
             ))}
 
             {/* Lane labels */}
-            <text x="84" y={(LANE_TOP.hrSpo2 + LANE_TOP.visits) / 2 + 4} textAnchor="end" fontSize="10" fill="#888780">HR / SpO₂</text>
-            <text x="84" y={(LANE_TOP.visits + LANE_TOP.alerts) / 2 + 4} textAnchor="end" fontSize="10" fill="#888780">Visits</text>
-            <text x="84" y={(LANE_TOP.alerts + LANE_TOP.medications) / 2 + 4} textAnchor="end" fontSize="10" fill="#888780">Alerts</text>
-            <text x="84" y={(LANE_TOP.medications + LANE_TOP.labs) / 2 + 4} textAnchor="end" fontSize="9" fill="#888780">Medications</text>
-            <text x="84" y={(LANE_TOP.labs + LANE_TOP.imaging) / 2 + 4} textAnchor="end" fontSize="10" fill="#888780">Labs</text>
-            <text x="84" y={(LANE_TOP.imaging + LANE_TOP.notes) / 2 + 4} textAnchor="end" fontSize="10" fill="#888780">Imaging</text>
-            <text x="84" y={(LANE_TOP.notes + SVG_H) / 2 + 4} textAnchor="end" fontSize="10" fill="#888780">Notes</text>
+            <text x={LABEL_COL_W / 2} y={(LANE_TOP.visits + LANE_TOP.alerts) / 2 + 4} textAnchor="middle" fontSize="8" fill={LABEL_TEXT} fontWeight="600">Visits</text>
+            <text x={LABEL_COL_W / 2} y={(LANE_TOP.alerts + LANE_TOP.medications) / 2 + 4} textAnchor="middle" fontSize="8" fill={LABEL_TEXT} fontWeight="600">Alerts</text>
+            <text x={LABEL_COL_W / 2} y={(LANE_TOP.medications + LANE_TOP.labs) / 2 + 4} textAnchor="middle" fontSize="8" fill={LABEL_TEXT} fontWeight="600">Medications</text>
+            <text x={LABEL_COL_W / 2} y={(LANE_TOP.labs + LANE_TOP.imaging) / 2 + 4} textAnchor="middle" fontSize="8" fill={LABEL_TEXT} fontWeight="600">Labs</text>
+            <text x={LABEL_COL_W / 2} y={(LANE_TOP.imaging + LANE_TOP.notes) / 2 + 4} textAnchor="middle" fontSize="8" fill={LABEL_TEXT} fontWeight="600">Imaging</text>
+            <text x={LABEL_COL_W / 2} y={(LANE_TOP.notes + SVG_H) / 2 + 4} textAnchor="middle" fontSize="8" fill={LABEL_TEXT} fontWeight="600">Notes</text>
 
-            {/* Today line */}
-            <line x1="706" y1="22" x2="706" y2={SVG_H - 10} stroke="#A32D2D" strokeWidth="1" strokeDasharray="3 3" opacity="0.5" />
-            <text x="706" y={SVG_H - 2} textAnchor="middle" fontSize="9" fill="#A32D2D">today</text>
-
-            {/* LANE 1: HR / SpO2 */}
-            {visibleLayers.sensor && (
+            {/* Today line (only meaningful for mock data) */}
+            {!hasRealSensor && (
               <>
-                <polyline fill="none" stroke="#185FA5" strokeWidth="1.4" opacity="0.75" strokeLinecap="round" strokeLinejoin="round"
-                  points="88,52 108,47 128,54 148,49 175,44 196,51 220,48 242,56 262,42 285,50 305,45 320,53 342,49 362,55 378,46 400,52 420,48 436,44 460,51 477,57 494,49 516,52 540,46 558,53 580,49 602,44 620,52 640,48 660,56 680,46 706,44" />
-                <polyline fill="none" stroke="#85B7EB" strokeWidth="0.8" opacity="0.45" strokeLinecap="round"
-                  points="88,65 128,64 175,65 220,63 262,66 305,64 342,65 378,63 420,64 460,66 500,63 540,65 580,64 620,65 660,63 706,64" />
+                <line x1="706" y1={LANE_TOP.visits} x2="706" y2={SVG_H - 10} stroke="#A32D2D" strokeWidth="1" strokeDasharray="3 3" opacity="0.5" />
+                <text x="706" y={SVG_H - 2} textAnchor="middle" fontSize="9" fill="#A32D2D">today</text>
               </>
             )}
 
-            {/* LANE 2: Visits */}
+            {/* LANE 1: Visits */}
             {visibleLayers.cardioVisits && (
               <>
-                <VisitRect x={105} label="Cardio" doctor="Dr Reiter" type="cardio" date="Jan 15, 2024" notes="Routine follow-up. ECG normal sinus rhythm. BP 138/82." />
-                <VisitRect x={286} label="Cardio" doctor="Dr Reiter" type="cardio" date="Apr 10, 2024" notes="Stable. Continue current meds. Watch renal function closely." />
-                <VisitRect x={540} label="Cardio" doctor="Dr Reiter" type="cardio" date="Sep 22, 2024" notes="Dizziness reported. K+ rising. Consider stopping spironolactone." />
+                <polyline
+                  fill="none"
+                  stroke="#0F6E56"
+                  strokeWidth="1"
+                  strokeDasharray="3 2"
+                  opacity="0.3"
+                  points={CARDIO_VISITS.map((v) => `${v.x + 18},${LANE_CENTER.visits}`).join(" ")}
+                />
+                {CARDIO_VISITS.map((visit) => (
+                  <VisitRect
+                    key={`cardio-${visit.x}`}
+                    x={visit.x}
+                    label="Cardio"
+                    doctor="Dr Reiter"
+                    type="cardio"
+                    date={visit.date}
+                    notes={visit.notes}
+                  />
+                ))}
               </>
             )}
             {visibleLayers.gpVisits && (
               <>
-                <VisitRect x={160} label="GP" doctor="Dr Hofer" type="gp" date="Feb 8, 2024" notes="Ankle oedema noted. Referred to cardiology. Adjusted diuretic." />
-                <VisitRect x={366} label="GP" doctor="Dr Hofer" type="gp" date="Jun 5, 2024" notes="Fatigue increasing. Started spironolactone 25mg." />
-                <VisitRect x={610} label="GP" doctor="Dr Hofer" type="gp" date="Oct 18, 2024" notes="Urgent: review meds. K+ elevated. Coordinating with cardiology." />
+                <polyline
+                  fill="none"
+                  stroke="#854F0B"
+                  strokeWidth="1"
+                  strokeDasharray="3 2"
+                  opacity="0.3"
+                  points={GP_VISITS.map((v) => `${v.x + 15},${LANE_CENTER.visits + 6}`).join(" ")}
+                />
+                {GP_VISITS.map((visit) => (
+                  <VisitRect
+                    key={`gp-${visit.x}`}
+                    x={visit.x}
+                    label="GP"
+                    doctor="Dr Hofer"
+                    type="gp"
+                    date={visit.date}
+                    notes={visit.notes}
+                  />
+                ))}
               </>
             )}
 
@@ -188,11 +290,36 @@ const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) 
             {/* LANE 5: Labs */}
             {visibleLayers.labResults && (
               <>
-                <LabDot cx={117} cy={LANE_TOP.labs + 25} value="68" color="#534AB7" textColor="#3C3489" label="eGFR — Estimated Glomerular Filtration Rate. Normal >60. Measures kidney function." />
-                <LabDot cx={300} cy={LANE_TOP.labs + 30} value="64" color="#534AB7" textColor="#3C3489" label="eGFR — Declining from 68. Mild impairment." />
-                <LabDot cx={460} cy={LANE_TOP.labs + 35} value="61" color="#534AB7" textColor="#3C3489" label="eGFR — Borderline. Approaching CKD Stage 3." />
-                <LabDot cx={636} cy={LANE_TOP.labs + 42} value="57" color="#A32D2D" textColor="#791F1F" label="eGFR — Below 60. CKD Stage 3a. Urgent review." r={6} />
-                <polyline fill="none" stroke="#534AB7" strokeWidth="1" strokeDasharray="3 2" opacity="0.35" points={`117,${LANE_TOP.labs + 25} 300,${LANE_TOP.labs + 30} 460,${LANE_TOP.labs + 35} 636,${LANE_TOP.labs + 42}`} />
+                {/* Left-side anchors so lab trends start with the same visual language as medication bars */}
+                <rect x={X_START} y={LANE_TOP.labs + 18} width="84" height="14" rx="3" fill="#2B6CB0" opacity="0.16" />
+                <rect x={X_START} y={LANE_TOP.labs + 18} width="84" height="14" rx="3" fill="none" stroke="#2B6CB0" strokeWidth="0.45" opacity="0.55" />
+                <text x={X_START + 6} y={LANE_TOP.labs + 28} fontSize="8.5" fill="#1E4E85">eGFR trend</text>
+
+                <rect x={X_START} y={LANE_TOP.labs + 44} width="84" height="14" rx="3" fill="#854F0B" opacity="0.14" />
+                <rect x={X_START} y={LANE_TOP.labs + 44} width="84" height="14" rx="3" fill="none" stroke="#854F0B" strokeWidth="0.45" opacity="0.5" />
+                <text x={X_START + 6} y={LANE_TOP.labs + 54} fontSize="8.5" fill="#633806">HbA1c</text>
+
+                {EGFR_POINTS.map((p, idx) => (
+                  <LabDot
+                    key={`egfr-${p.x}`}
+                    cx={p.x}
+                    cy={p.y}
+                    value={p.value}
+                    color={idx === EGFR_POINTS.length - 1 ? "#A32D2D" : "#2B6CB0"}
+                    textColor={idx === EGFR_POINTS.length - 1 ? "#791F1F" : "#1E4E85"}
+                    label={p.label}
+                    r={idx === EGFR_POINTS.length - 1 ? 6 : 5}
+                  />
+                ))}
+                <polyline
+                  fill="none"
+                  stroke="#2B6CB0"
+                  strokeWidth="1.1"
+                  strokeDasharray="3 2"
+                  opacity="0.4"
+                  points={`${X_START},${EGFR_POINTS[0].y} ${EGFR_POINTS.map((p) => `${p.x},${p.y}`).join(" ")}`}
+                />
+                <circle cx={X_START} cy={EGFR_POINTS[0].y} r="3" fill="#2B6CB0" opacity="0.8" />
                 <text x="650" y={LANE_TOP.labs + 42} fontSize="8" fill="#A32D2D">eGFR</text>
 
                 <LabDot cx={204} cy={LANE_TOP.labs + 50} value="" color="#854F0B" textColor="#633806" label="HbA1c 7.2% — Glycated hemoglobin. Target <7%. Average blood sugar over 3 months." r={4} />
@@ -208,21 +335,43 @@ const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) 
             {/* LANE 6: Imaging */}
             {visibleLayers.imaging && (
               <>
-                <ImagingRect x={155} label="Echo" sub="Feb" laneTop={LANE_TOP.imaging} />
-                <ImagingRect x={456} label="CXR" sub="Jul" laneTop={LANE_TOP.imaging} />
-                <ImagingRect x={630} label="CT" sub="Oct" laneTop={LANE_TOP.imaging} />
+                <polyline
+                  fill="none"
+                  stroke="hsl(220 11% 56%)"
+                  strokeWidth="1"
+                  strokeDasharray="3 2"
+                  opacity="0.35"
+                  points={IMAGING_EVENTS.map((event) => `${event.x + 19},${LANE_CENTER.imaging}`).join(" ")}
+                />
+                {IMAGING_EVENTS.map((event) => (
+                  <ImagingRect key={`img-${event.x}`} x={event.x} label={event.label} sub={event.sub} laneTop={LANE_TOP.imaging} />
+                ))}
               </>
             )}
 
             {/* LANE 7: Notes — clickable diamonds */}
             {visibleLayers.notes && (
               <>
-                <NoteDiamond cx={123} fill="#E1F5EE" stroke="#0F6E56" textColor="#085041" label="dyspnoea on exertion" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[0])} />
-                <NoteDiamond cx={195} fill="#FAEEDA" stroke="#854F0B" textColor="#633806" label="ankle oedema" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[1])} />
-                <NoteDiamond cx={304} fill="#E1F5EE" stroke="#0F6E56" textColor="#085041" label="stable, watch renal" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[2])} />
-                <NoteDiamond cx={400} fill="#FAEEDA" stroke="#854F0B" textColor="#633806" label="fatigue · spiro" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[3])} />
-                <NoteDiamond cx={558} fill="#E1F5EE" stroke="#0F6E56" textColor="#085041" label="dizzy · K+ rising" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[4])} />
-                <NoteDiamond cx={645} fill="#FAEEDA" stroke="#854F0B" textColor="#633806" label="review meds" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[5])} />
+                <polyline
+                  fill="none"
+                  stroke="hsl(220 11% 52%)"
+                  strokeWidth="1"
+                  strokeDasharray="3 2"
+                  opacity="0.35"
+                  points={NOTE_EVENTS.map((event) => `${event.x},${LANE_CENTER.notes - 8}`).join(" ")}
+                />
+                {NOTE_EVENTS.map((event) => (
+                  <NoteDiamond
+                    key={`note-${event.x}`}
+                    cx={event.x}
+                    fill={event.fill}
+                    stroke={event.stroke}
+                    textColor={event.textColor}
+                    label={event.label}
+                    laneTop={LANE_TOP.notes}
+                    onClick={() => setSelectedNote(notesData[event.noteIndex])}
+                  />
+                ))}
               </>
             )}
           </svg>
@@ -299,14 +448,15 @@ const VisitRect = ({
   const border = type === "cardio" ? "#0F6E56" : "#854F0B";
   const textDark = type === "cardio" ? "#085041" : "#633806";
   const textLight = type === "cardio" ? "#0F6E56" : "#854F0B";
+  const ry = LANE_TOP.visits + 6;
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <g className="cursor-pointer">
-          <rect x={x} y={86} width={w} height={30} rx={6} fill={bg} stroke={border} strokeWidth={0.8} />
-          <text x={x + w / 2} y={99} textAnchor="middle" fontSize="9" fill={textDark} fontWeight="500">{label}</text>
-          <text x={x + w / 2} y={109} textAnchor="middle" fontSize="8" fill={textLight}>{doctor}</text>
+          <rect x={x} y={ry} width={w} height={30} rx={6} fill={bg} stroke={border} strokeWidth={0.8} />
+          <text x={x + w / 2} y={ry + 13} textAnchor="middle" fontSize="9" fill={textDark} fontWeight="500">{label}</text>
+          <text x={x + w / 2} y={ry + 23} textAnchor="middle" fontSize="8" fill={textLight}>{doctor}</text>
         </g>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-[260px] p-3">

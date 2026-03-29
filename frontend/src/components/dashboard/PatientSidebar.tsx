@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Menu, User, Check } from "lucide-react";
+import { Search, Menu } from "lucide-react";
 import type { DataLayerKey } from "@/pages/Index";
 
 const patients = [
@@ -24,12 +24,13 @@ const dataLayers: { key: DataLayerKey; label: string; color: string }[] = [
 interface Props {
   collapsed: boolean;
   onToggle: () => void;
+  selectedPatient: number;
+  onSelectPatient: (i: number) => void;
   visibleLayers: Record<DataLayerKey, boolean>;
   onToggleLayer: (key: DataLayerKey) => void;
 }
 
-const PatientSidebar = ({ collapsed, onToggle, visibleLayers, onToggleLayer }: Props) => {
-  const [activePatient, setActivePatient] = useState(0);
+const PatientSidebar = ({ collapsed, onToggle, selectedPatient, onSelectPatient, visibleLayers, onToggleLayer }: Props) => {
   const [search, setSearch] = useState("");
 
   const filtered = patients.filter((p) =>
@@ -76,9 +77,9 @@ const PatientSidebar = ({ collapsed, onToggle, visibleLayers, onToggleLayer }: P
             {filtered.map((p, i) => (
               <div
                 key={p.name}
-                onClick={() => setActivePatient(i)}
+                onClick={() => onSelectPatient(patients.indexOf(p))}
                 className={`flex items-start gap-1.5 px-2 py-2 rounded-[10px] cursor-pointer mb-0.5 transition-colors ${
-                  i === activePatient
+                  patients.indexOf(p) === selectedPatient
                     ? "bg-white border border-border/60"
                     : "hover:bg-white/60"
                 }`}

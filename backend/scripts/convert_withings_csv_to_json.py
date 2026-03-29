@@ -4,7 +4,10 @@ import csv
 import json
 import os
 import re
+import sys
 from datetime import datetime, timezone
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
 def parse_iso_to_ms(s: str) -> int | None:
     s = (s or "").strip()

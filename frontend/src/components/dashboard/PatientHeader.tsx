@@ -1,31 +1,50 @@
-import { TrendingDown, ArrowUpRight, AlertTriangle } from "lucide-react";
+
+const PATIENTS = [
+  { name: "Müller, Hans-Georg", id: "#PT-00471", meta: "M · 64 yrs · Cardiology + Nephrology · Last seen 3 days ago" },
+  { name: "Bauer, Ingrid",       id: "#PT-00382", meta: "F · 71 yrs · Oncology · Last seen 1 week ago" },
+  { name: "Schneider, Klaus",    id: "#PT-00519", meta: "M · 58 yrs · Neurology · Last seen 5 days ago" },
+  { name: "Fischer, Maria",      id: "#PT-00274", meta: "F · 45 yrs · Endocrinology · Last seen 2 days ago" },
+  { name: "Weber, Thomas",       id: "#PT-00631", meta: "M · 77 yrs · Cardiology · Last seen today" },
+  { name: "Klein, Sabine",       id: "#PT-00447", meta: "F · 52 yrs · Rheumatology · Last seen 4 days ago" },
+];
 
 interface Props {
   activeNav: string;
   onNavChange: (nav: string) => void;
+  selectedPatient: number;
 }
 
 const navItems = ["Timeline", "Medications", "Labs", "Imaging"];
 
-const PatientHeader = ({ activeNav, onNavChange }: Props) => {
+const PatientHeader = ({ activeNav, onNavChange, selectedPatient }: Props) => {
+  const patient = PATIENTS[selectedPatient] ?? PATIENTS[0];
+  const isRealPatient = selectedPatient === 0;
+
   return (
     <header className="flex flex-col border-b border-border/60">
       {/* Top bar */}
       <div className="h-14 px-5 flex items-center gap-3.5">
         <div>
           <div className="text-sm font-medium text-foreground">
-            Müller, Hans-Georg{" "}
-            <span className="text-muted-foreground font-normal">&nbsp;·&nbsp;#PT-00471</span>
+            {patient.name}{" "}
+            <span className="text-muted-foreground font-normal">&nbsp;·&nbsp;{patient.id}</span>
           </div>
           <div className="text-[11px] text-muted-foreground">
-            M · 64 yrs · Cardiology + Nephrology · Last seen 3 days ago
+            {patient.meta}
           </div>
         </div>
         <div className="w-px h-7 bg-border/60" />
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-destructive/8 border border-destructive/15">
-          <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
-          <span className="text-[11px] font-medium text-destructive">2 drug alerts</span>
-        </div>
+        {isRealPatient ? (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-destructive/8 border border-destructive/15">
+            <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
+            <span className="text-[11px] font-medium text-destructive">2 drug alerts</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary border border-border/60">
+            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40" />
+            <span className="text-[11px] text-muted-foreground">Draft data</span>
+          </div>
+        )}
         <div className="flex-1" />
         <div className="flex bg-secondary/60 rounded-[10px] p-[3px] gap-0.5 border border-border/60">
           {navItems.map((item) => (

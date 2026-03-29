@@ -2,6 +2,9 @@ import urllib.request
 import os
 from fpdf import FPDF
 
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_DATA_RAW_DIR = os.path.join(_SCRIPT_DIR, "..", "..", "data", "raw")
+
 class ePADocument(FPDF):
     def header(self):
         self.set_font('helvetica', 'B', 14)
@@ -63,7 +66,7 @@ image_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Normal_sa
 
 # --- NEW: Use Local Image ---
 y_before_image = pdf.get_y()
-image_filename = "mri_knee.jpg" # Points to the file you just saved
+image_filename = os.path.join(_DATA_RAW_DIR, "mri_knee.jpg")
 
 # Insert image into PDF 
 pdf.image(image_filename, x=65, y=y_before_image, w=80)
@@ -76,5 +79,5 @@ pdf.set_font('helvetica', 'I', 10)
 pdf.cell(0, 6, 'Abb. 1: Sagittale T1-gewichtete MRT-Aufnahme des rechten Kniegelenks.', ln=1, align='C')
 
 # Save the PDF
-pdf.output('ePA_Musterbefund_mit_Bild.pdf')
+pdf.output(os.path.join(_DATA_RAW_DIR, 'ePA_Musterbefund_mit_Bild.pdf'))
 print("Successfully generated 'ePA_Musterbefund_mit_Bild.pdf'")

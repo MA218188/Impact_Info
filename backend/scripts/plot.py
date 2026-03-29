@@ -3,6 +3,8 @@ import os
 from datetime import datetime, timezone, timedelta
 import plotly.graph_objects as go
 
+_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "out_json")
+
 def _offset(r):
     try:
         return int(r.get("offsetToUtcMinutes", 0))
@@ -10,7 +12,7 @@ def _offset(r):
         return 0
 
 def load_type(name):
-    filepath = os.path.join("out_json", f"{name}.json")
+    filepath = os.path.join(_DATA_DIR, f"{name}.json")
     if not os.path.exists(filepath):
         return None
     with open(filepath) as f:
@@ -51,7 +53,7 @@ def load_sleep_hypnogram():
     default_offset = 60
 
     for key, fname in FILES.items():
-        fp = os.path.join("out_json", f"{fname}.json")
+        fp = os.path.join(_DATA_DIR, f"{fname}.json")
         if not os.path.exists(fp):
             continue
         with open(fp) as f:
@@ -89,7 +91,7 @@ def load_sleep_hypnogram():
 
 def load_clinical_events():
     """Load ClinicalEvent records and return a trace dict with hover text."""
-    filepath = os.path.join("out_json", "type_clinicalevent.json")
+    filepath = os.path.join(_DATA_DIR, "type_clinicalevent.json")
     if not os.path.exists(filepath):
         return None
     with open(filepath) as f:
@@ -124,7 +126,7 @@ def load_clinical_events():
 
 def _load_raw(name):
     """Return sorted list of (startMs, value) for a metric, or []."""
-    fp = os.path.join("out_json", f"{name}.json")
+    fp = os.path.join(_DATA_DIR, f"{name}.json")
     if not os.path.exists(fp):
         return []
     with open(fp) as f:
@@ -174,7 +176,7 @@ def detect_alerts():
     active_alerts = []
 
     # Determine a common timezone offset from heart rate data (fallback UTC)
-    hr_fp = os.path.join("out_json", "type_heartrate.json")
+    hr_fp = os.path.join(_DATA_DIR, "type_heartrate.json")
     tz_offset = 0
     if os.path.exists(hr_fp):
         with open(hr_fp) as f:

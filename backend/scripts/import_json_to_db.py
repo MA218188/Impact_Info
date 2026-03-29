@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""One-shot bulk import of all out_json/ files into health_data.db."""
+"""One-shot bulk import of all data/out_json/ files into health_data.db."""
 import json
 import os
+import sys
 
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 from db import init_db, insert_records
 
-OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out_json")
+OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "out_json")
 
 
 def main():
@@ -52,7 +54,7 @@ def main():
         print(f"  {os.path.basename(path)}: {len(records)} records, {n} newly inserted")
 
     print(f"\nDone. {total_inserted} new rows inserted ({total_records} total records processed).")
-    print(f"Database: {os.path.join(os.path.dirname(os.path.abspath(__file__)), 'health_data.db')}")
+    print(f"Database: {os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'health_data.db')}")
 
 
 if __name__ == "__main__":

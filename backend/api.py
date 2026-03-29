@@ -23,7 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out_json")
+OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "out_json")
 
 
 @app.on_event("startup")
