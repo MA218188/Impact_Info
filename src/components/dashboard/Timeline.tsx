@@ -235,26 +235,49 @@ const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) 
               <DialogTitle>Clinical Note — {selectedNote?.doctor}</DialogTitle>
             </DialogHeader>
             {selectedNote && (
-              <div className="space-y-3 text-sm">
-                <div><span className="font-medium">Date:</span> {selectedNote.date}</div>
-                <div><span className="font-medium">Provider:</span> {selectedNote.doctor}</div>
+              <div className="space-y-4 text-sm">
+                <div className="flex gap-4">
+                  <div><span className="font-medium">Date:</span> {selectedNote.date}</div>
+                  <div><span className="font-medium">Provider:</span> {selectedNote.doctor}</div>
+                </div>
+
                 <div className="border-t pt-3">
-                  <p className="font-medium mb-2">Note</p>
+                  <p className="font-medium mb-1">Clinical Note</p>
                   <p className="text-muted-foreground">{selectedNote.fullNote}</p>
                 </div>
-                <div className="border-t pt-3 space-y-2">
-                  <p className="font-medium">Related Data</p>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">BP:</span> 138/82 mmHg</div>
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">HR:</span> 72 bpm</div>
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">eGFR:</span> 64 mL/min</div>
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">K+:</span> 4.8 mmol/L</div>
-                  </div>
-                  <div className="bg-secondary/30 rounded-lg p-3 text-xs">
-                    <p className="font-medium mb-1">Active Medications at Time of Note</p>
-                    <p className="text-muted-foreground">Ramipril 5mg · Metformin 1000mg · Furosemide 40mg</p>
+
+                <div className="border-t pt-3">
+                  <p className="font-medium mb-2">Medications at Time of Note</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedNote.medications.map((med) => (
+                      <span key={med} className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">{med}</span>
+                    ))}
                   </div>
                 </div>
+
+                {selectedNote.labs.length > 0 && (
+                  <div className="border-t pt-3">
+                    <p className="font-medium mb-2">Lab Results</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {selectedNote.labs.map((lab) => (
+                        <div key={lab.label} className="bg-secondary/50 rounded-lg p-2">
+                          <span className="text-muted-foreground">{lab.label}:</span> {lab.value}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedNote.imaging.length > 0 && (
+                  <div className="border-t pt-3">
+                    <p className="font-medium mb-2">Imaging</p>
+                    <div className="space-y-1 text-xs">
+                      {selectedNote.imaging.map((img) => (
+                        <div key={img} className="bg-secondary/30 rounded-lg p-2 text-muted-foreground">{img}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>
