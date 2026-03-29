@@ -29,13 +29,13 @@ const GRID_X = [88, 146, 204, 262, 320, 378, 436, 494, 552, 610, 668, 720];
 const LANE_TOP = {
   hrSpo2: 22,
   visits: 80,
-  alerts: 140,
-  medications: 190,
-  labs: 270,
-  imaging: 350,
-  notes: 410,
+  alerts: 145,
+  medications: 200,
+  labs: 290,
+  imaging: 380,
+  notes: 450,
 };
-const SVG_H = 490;
+const SVG_H = 540;
 
 interface NoteData {
   date: string;
