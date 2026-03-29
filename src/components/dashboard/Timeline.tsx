@@ -26,7 +26,6 @@ const MONTHS_X = [117, 175, 233, 291, 349, 407, 465, 523, 581, 639, 694, 738];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const GRID_X = [88, 146, 204, 262, 320, 378, 436, 494, 552, 610, 668, 720];
 
-// Lane boundaries (top of each lane row)
 const LANE_TOP = {
   hrSpo2: 22,
   visits: 80,
@@ -38,7 +37,24 @@ const LANE_TOP = {
 };
 const SVG_H = 490;
 
+interface NoteData {
+  date: string;
+  doctor: string;
+  fullNote: string;
+}
+
+const notesData: NoteData[] = [
+  { date: "Jan 20, 2024", doctor: "Dr Hofer", fullNote: "Patient reports increasing dyspnoea on exertion over 2 weeks. No orthopnoea. Chest clear on auscultation. Consider echo referral." },
+  { date: "Feb 8, 2024", doctor: "Dr Hofer", fullNote: "Bilateral ankle oedema noted. Pitting 2+. Weight up 3kg from baseline. Started furosemide 40mg. Referred cardiology." },
+  { date: "Apr 10, 2024", doctor: "Dr Reiter", fullNote: "Patient stable on current regime. eGFR 64 — mild decline. Continue monitoring renal function. Review in 3 months." },
+  { date: "Jun 5, 2024", doctor: "Dr Hofer", fullNote: "Fatigue worsening over past month. Started spironolactone 25mg for HF. Monitor potassium closely given concurrent Ramipril." },
+  { date: "Sep 22, 2024", doctor: "Dr Reiter", fullNote: "Dizziness on standing. K+ 5.4 — rising trend. Consider stopping spironolactone. Check renal function urgently." },
+  { date: "Oct 18, 2024", doctor: "Dr Hofer", fullNote: "Urgent medication review. K+ elevated at 5.4. eGFR 57 — CKD Stage 3a. Coordinating with cardiology. Consider stopping spironolactone and ibuprofen." },
+];
+
 const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) => {
+  const [selectedNote, setSelectedNote] = useState<NoteData | null>(null);
+
   return (
     <TooltipProvider delayDuration={200}>
       <div className="flex-1 flex flex-col min-w-0">
@@ -91,7 +107,7 @@ const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) 
               <line key={y} x1="0" y1={y} x2="760" y2={y} stroke="hsl(220 15% 90%)" strokeWidth="0.5" />
             ))}
 
-            {/* Lane labels — centered vertically in each lane */}
+            {/* Lane labels */}
             <text x="84" y={(LANE_TOP.hrSpo2 + LANE_TOP.visits) / 2 + 4} textAnchor="end" fontSize="10" fill="#888780">HR / SpO₂</text>
             <text x="84" y={(LANE_TOP.visits + LANE_TOP.alerts) / 2 + 4} textAnchor="end" fontSize="10" fill="#888780">Visits</text>
             <text x="84" y={(LANE_TOP.alerts + LANE_TOP.medications) / 2 + 4} textAnchor="end" fontSize="10" fill="#888780">Alerts</text>
@@ -107,16 +123,10 @@ const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) 
             {/* LANE 1: HR / SpO2 */}
             {visibleLayers.sensor && (
               <>
-                <polyline
-                  fill="none" stroke="#185FA5" strokeWidth="1.4" opacity="0.75"
-                  strokeLinecap="round" strokeLinejoin="round"
-                  points="88,52 108,47 128,54 148,49 175,44 196,51 220,48 242,56 262,42 285,50 305,45 320,53 342,49 362,55 378,46 400,52 420,48 436,44 460,51 477,57 494,49 516,52 540,46 558,53 580,49 602,44 620,52 640,48 660,56 680,46 706,44"
-                />
-                <polyline
-                  fill="none" stroke="#85B7EB" strokeWidth="0.8" opacity="0.45"
-                  strokeLinecap="round"
-                  points="88,65 128,64 175,65 220,63 262,66 305,64 342,65 378,63 420,64 460,66 500,63 540,65 580,64 620,65 660,63 706,64"
-                />
+                <polyline fill="none" stroke="#185FA5" strokeWidth="1.4" opacity="0.75" strokeLinecap="round" strokeLinejoin="round"
+                  points="88,52 108,47 128,54 148,49 175,44 196,51 220,48 242,56 262,42 285,50 305,45 320,53 342,49 362,55 378,46 400,52 420,48 436,44 460,51 477,57 494,49 516,52 540,46 558,53 580,49 602,44 620,52 640,48 660,56 680,46 706,44" />
+                <polyline fill="none" stroke="#85B7EB" strokeWidth="0.8" opacity="0.45" strokeLinecap="round"
+                  points="88,65 128,64 175,65 220,63 262,66 305,64 342,65 378,63 420,64 460,66 500,63 540,65 580,64 620,65 660,63 706,64" />
               </>
             )}
 
@@ -201,19 +211,51 @@ const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) 
               </>
             )}
 
-            {/* LANE 7: Notes */}
+            {/* LANE 7: Notes — clickable diamonds */}
             {visibleLayers.notes && (
               <>
-                <NoteDiamond cx={123} fill="#E1F5EE" stroke="#0F6E56" textColor="#085041" label="dyspnoea on exertion" laneTop={LANE_TOP.notes} date="Jan 20, 2024" doctor="Dr Hofer" fullNote="Patient reports increasing dyspnoea on exertion over 2 weeks. No orthopnoea. Chest clear on auscultation. Consider echo referral." />
-                <NoteDiamond cx={195} fill="#FAEEDA" stroke="#854F0B" textColor="#633806" label="ankle oedema" laneTop={LANE_TOP.notes} date="Feb 8, 2024" doctor="Dr Hofer" fullNote="Bilateral ankle oedema noted. Pitting 2+. Weight up 3kg from baseline. Started furosemide 40mg. Referred cardiology." />
-                <NoteDiamond cx={304} fill="#E1F5EE" stroke="#0F6E56" textColor="#085041" label="stable, watch renal" laneTop={LANE_TOP.notes} date="Apr 10, 2024" doctor="Dr Reiter" fullNote="Patient stable on current regime. eGFR 64 — mild decline. Continue monitoring renal function. Review in 3 months." />
-                <NoteDiamond cx={400} fill="#FAEEDA" stroke="#854F0B" textColor="#633806" label="fatigue · spiro" laneTop={LANE_TOP.notes} date="Jun 5, 2024" doctor="Dr Hofer" fullNote="Fatigue worsening over past month. Started spironolactone 25mg for HF. Monitor potassium closely given concurrent Ramipril." />
-                <NoteDiamond cx={558} fill="#E1F5EE" stroke="#0F6E56" textColor="#085041" label="dizzy · K+ rising" laneTop={LANE_TOP.notes} date="Sep 22, 2024" doctor="Dr Reiter" fullNote="Dizziness on standing. K+ 5.4 — rising trend. Consider stopping spironolactone. Check renal function urgently." />
-                <NoteDiamond cx={645} fill="#FAEEDA" stroke="#854F0B" textColor="#633806" label="review meds" laneTop={LANE_TOP.notes} date="Oct 18, 2024" doctor="Dr Hofer" fullNote="Urgent medication review. K+ elevated at 5.4. eGFR 57 — CKD Stage 3a. Coordinating with cardiology. Consider stopping spironolactone and ibuprofen." />
+                <NoteDiamond cx={123} fill="#E1F5EE" stroke="#0F6E56" textColor="#085041" label="dyspnoea on exertion" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[0])} />
+                <NoteDiamond cx={195} fill="#FAEEDA" stroke="#854F0B" textColor="#633806" label="ankle oedema" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[1])} />
+                <NoteDiamond cx={304} fill="#E1F5EE" stroke="#0F6E56" textColor="#085041" label="stable, watch renal" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[2])} />
+                <NoteDiamond cx={400} fill="#FAEEDA" stroke="#854F0B" textColor="#633806" label="fatigue · spiro" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[3])} />
+                <NoteDiamond cx={558} fill="#E1F5EE" stroke="#0F6E56" textColor="#085041" label="dizzy · K+ rising" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[4])} />
+                <NoteDiamond cx={645} fill="#FAEEDA" stroke="#854F0B" textColor="#633806" label="review meds" laneTop={LANE_TOP.notes} onClick={() => setSelectedNote(notesData[5])} />
               </>
             )}
           </svg>
         </div>
+
+        {/* Note detail dialog — rendered outside SVG */}
+        <Dialog open={!!selectedNote} onOpenChange={(open) => { if (!open) setSelectedNote(null); }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Clinical Note — {selectedNote?.doctor}</DialogTitle>
+            </DialogHeader>
+            {selectedNote && (
+              <div className="space-y-3 text-sm">
+                <div><span className="font-medium">Date:</span> {selectedNote.date}</div>
+                <div><span className="font-medium">Provider:</span> {selectedNote.doctor}</div>
+                <div className="border-t pt-3">
+                  <p className="font-medium mb-2">Note</p>
+                  <p className="text-muted-foreground">{selectedNote.fullNote}</p>
+                </div>
+                <div className="border-t pt-3 space-y-2">
+                  <p className="font-medium">Related Data</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">BP:</span> 138/82 mmHg</div>
+                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">HR:</span> 72 bpm</div>
+                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">eGFR:</span> 64 mL/min</div>
+                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">K+:</span> 4.8 mmol/L</div>
+                  </div>
+                  <div className="bg-secondary/30 rounded-lg p-3 text-xs">
+                    <p className="font-medium mb-1">Active Medications at Time of Note</p>
+                    <p className="text-muted-foreground">Ramipril 5mg · Metformin 1000mg · Furosemide 40mg</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );
@@ -308,54 +350,17 @@ const ImagingRect = ({ x, label, sub, laneTop }: { x: number; label: string; sub
 );
 
 const NoteDiamond = ({
-  cx, fill, stroke, textColor, label, laneTop, date, doctor, fullNote,
+  cx, fill, stroke, textColor, label, laneTop, onClick,
 }: {
-  cx: number; fill: string; stroke: string; textColor: string; label: string; laneTop: number; date: string; doctor: string; fullNote: string;
+  cx: number; fill: string; stroke: string; textColor: string; label: string; laneTop: number; onClick: () => void;
 }) => {
-  const [open, setOpen] = useState(false);
   const dy = laneTop + 12;
-
   return (
-    <>
-      <g className="cursor-pointer" onClick={() => setOpen(true)}>
-        <polygon points={`${cx},${dy} ${cx + 6},${dy + 7} ${cx},${dy + 14} ${cx - 6},${dy + 7}`} fill={fill} stroke={stroke} strokeWidth={0.8} />
-        <line x1={cx} y1={dy + 14} x2={cx} y2={dy + 22} stroke={stroke} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.5} />
-        <text x={cx} y={dy + 32} textAnchor="middle" fontSize="7.5" fill={textColor}>{label}</text>
-      </g>
-
-      {open && (
-        <foreignObject x="0" y="0" width="1" height="1" overflow="visible">
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Clinical Note — {doctor}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3 text-sm">
-                <div><span className="font-medium">Date:</span> {date}</div>
-                <div><span className="font-medium">Provider:</span> {doctor}</div>
-                <div className="border-t pt-3">
-                  <p className="font-medium mb-2">Note</p>
-                  <p className="text-muted-foreground">{fullNote}</p>
-                </div>
-                <div className="border-t pt-3 space-y-2">
-                  <p className="font-medium">Related Data</p>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">BP:</span> 138/82 mmHg</div>
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">HR:</span> 72 bpm</div>
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">eGFR:</span> 64 mL/min</div>
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">K+:</span> 4.8 mmol/L</div>
-                  </div>
-                  <div className="bg-secondary/30 rounded-lg p-3 text-xs">
-                    <p className="font-medium mb-1">Active Medications at Time of Note</p>
-                    <p className="text-muted-foreground">Ramipril 5mg · Metformin 1000mg · Furosemide 40mg</p>
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </foreignObject>
-      )}
-    </>
+    <g className="cursor-pointer" onClick={onClick}>
+      <polygon points={`${cx},${dy} ${cx + 6},${dy + 7} ${cx},${dy + 14} ${cx - 6},${dy + 7}`} fill={fill} stroke={stroke} strokeWidth={0.8} />
+      <line x1={cx} y1={dy + 14} x2={cx} y2={dy + 22} stroke={stroke} strokeWidth={0.5} strokeDasharray="2 2" opacity={0.5} />
+      <text x={cx} y={dy + 32} textAnchor="middle" fontSize="7.5" fill={textColor}>{label}</text>
+    </g>
   );
 };
 
