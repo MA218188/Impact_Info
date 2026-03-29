@@ -29,27 +29,30 @@ const GRID_X = [88, 146, 204, 262, 320, 378, 436, 494, 552, 610, 668, 720];
 const LANE_TOP = {
   hrSpo2: 22,
   visits: 80,
-  alerts: 140,
-  medications: 190,
-  labs: 270,
-  imaging: 350,
-  notes: 410,
+  alerts: 145,
+  medications: 200,
+  labs: 290,
+  imaging: 380,
+  notes: 450,
 };
-const SVG_H = 490;
+const SVG_H = 540;
 
 interface NoteData {
   date: string;
   doctor: string;
   fullNote: string;
+  medications: string[];
+  labs: { label: string; value: string }[];
+  imaging: string[];
 }
 
 const notesData: NoteData[] = [
-  { date: "Jan 20, 2024", doctor: "Dr Hofer", fullNote: "Patient reports increasing dyspnoea on exertion over 2 weeks. No orthopnoea. Chest clear on auscultation. Consider echo referral." },
-  { date: "Feb 8, 2024", doctor: "Dr Hofer", fullNote: "Bilateral ankle oedema noted. Pitting 2+. Weight up 3kg from baseline. Started furosemide 40mg. Referred cardiology." },
-  { date: "Apr 10, 2024", doctor: "Dr Reiter", fullNote: "Patient stable on current regime. eGFR 64 — mild decline. Continue monitoring renal function. Review in 3 months." },
-  { date: "Jun 5, 2024", doctor: "Dr Hofer", fullNote: "Fatigue worsening over past month. Started spironolactone 25mg for HF. Monitor potassium closely given concurrent Ramipril." },
-  { date: "Sep 22, 2024", doctor: "Dr Reiter", fullNote: "Dizziness on standing. K+ 5.4 — rising trend. Consider stopping spironolactone. Check renal function urgently." },
-  { date: "Oct 18, 2024", doctor: "Dr Hofer", fullNote: "Urgent medication review. K+ elevated at 5.4. eGFR 57 — CKD Stage 3a. Coordinating with cardiology. Consider stopping spironolactone and ibuprofen." },
+  { date: "Jan 20, 2024", doctor: "Dr Hofer", fullNote: "Patient reports increasing dyspnoea on exertion over 2 weeks. No orthopnoea. Chest clear on auscultation. Consider echo referral.", medications: ["Ramipril 5mg", "Metformin 1000mg"], labs: [{ label: "eGFR", value: "68 mL/min" }, { label: "K+", value: "4.2 mmol/L" }], imaging: [] },
+  { date: "Feb 8, 2024", doctor: "Dr Hofer", fullNote: "Bilateral ankle oedema noted. Pitting 2+. Weight up 3kg from baseline. Started furosemide 40mg. Referred cardiology.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg"], labs: [{ label: "HbA1c", value: "7.2%" }], imaging: ["Echo — EF 42%, mild LV dysfunction"] },
+  { date: "Apr 10, 2024", doctor: "Dr Reiter", fullNote: "Patient stable on current regime. eGFR 64 — mild decline. Continue monitoring renal function. Review in 3 months.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg"], labs: [{ label: "eGFR", value: "64 mL/min" }, { label: "K+", value: "4.5 mmol/L" }], imaging: [] },
+  { date: "Jun 5, 2024", doctor: "Dr Hofer", fullNote: "Fatigue worsening over past month. Started spironolactone 25mg for HF. Monitor potassium closely given concurrent Ramipril.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg", "Spironolactone 25mg"], labs: [{ label: "eGFR", value: "61 mL/min" }], imaging: ["CXR — mild cardiomegaly, no pleural effusion"] },
+  { date: "Sep 22, 2024", doctor: "Dr Reiter", fullNote: "Dizziness on standing. K+ 5.4 — rising trend. Consider stopping spironolactone. Check renal function urgently.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg", "Spironolactone 25mg"], labs: [{ label: "eGFR", value: "57 mL/min" }, { label: "K+", value: "5.4 mmol/L" }], imaging: [] },
+  { date: "Oct 18, 2024", doctor: "Dr Hofer", fullNote: "Urgent medication review. K+ elevated at 5.4. eGFR 57 — CKD Stage 3a. Coordinating with cardiology. Consider stopping spironolactone and ibuprofen.", medications: ["Ramipril 5mg", "Metformin 1000mg", "Furosemide 40mg", "Spironolactone 25mg", "Ibuprofen PRN"], labs: [{ label: "eGFR", value: "57 mL/min" }, { label: "K+", value: "5.4 mmol/L" }, { label: "HbA1c", value: "6.9%" }], imaging: ["CT Abdomen — renal cortical thinning bilateral"] },
 ];
 
 const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) => {
@@ -232,26 +235,49 @@ const Timeline = ({ visibleLayers, activeTimeScale, onTimeScaleChange }: Props) 
               <DialogTitle>Clinical Note — {selectedNote?.doctor}</DialogTitle>
             </DialogHeader>
             {selectedNote && (
-              <div className="space-y-3 text-sm">
-                <div><span className="font-medium">Date:</span> {selectedNote.date}</div>
-                <div><span className="font-medium">Provider:</span> {selectedNote.doctor}</div>
+              <div className="space-y-4 text-sm">
+                <div className="flex gap-4">
+                  <div><span className="font-medium">Date:</span> {selectedNote.date}</div>
+                  <div><span className="font-medium">Provider:</span> {selectedNote.doctor}</div>
+                </div>
+
                 <div className="border-t pt-3">
-                  <p className="font-medium mb-2">Note</p>
+                  <p className="font-medium mb-1">Clinical Note</p>
                   <p className="text-muted-foreground">{selectedNote.fullNote}</p>
                 </div>
-                <div className="border-t pt-3 space-y-2">
-                  <p className="font-medium">Related Data</p>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">BP:</span> 138/82 mmHg</div>
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">HR:</span> 72 bpm</div>
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">eGFR:</span> 64 mL/min</div>
-                    <div className="bg-secondary/50 rounded-lg p-2"><span className="text-muted-foreground">K+:</span> 4.8 mmol/L</div>
-                  </div>
-                  <div className="bg-secondary/30 rounded-lg p-3 text-xs">
-                    <p className="font-medium mb-1">Active Medications at Time of Note</p>
-                    <p className="text-muted-foreground">Ramipril 5mg · Metformin 1000mg · Furosemide 40mg</p>
+
+                <div className="border-t pt-3">
+                  <p className="font-medium mb-2">Medications at Time of Note</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedNote.medications.map((med) => (
+                      <span key={med} className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">{med}</span>
+                    ))}
                   </div>
                 </div>
+
+                {selectedNote.labs.length > 0 && (
+                  <div className="border-t pt-3">
+                    <p className="font-medium mb-2">Lab Results</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {selectedNote.labs.map((lab) => (
+                        <div key={lab.label} className="bg-secondary/50 rounded-lg p-2">
+                          <span className="text-muted-foreground">{lab.label}:</span> {lab.value}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedNote.imaging.length > 0 && (
+                  <div className="border-t pt-3">
+                    <p className="font-medium mb-2">Imaging</p>
+                    <div className="space-y-1 text-xs">
+                      {selectedNote.imaging.map((img) => (
+                        <div key={img} className="bg-secondary/30 rounded-lg p-2 text-muted-foreground">{img}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>
