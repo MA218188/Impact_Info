@@ -1,0 +1,18 @@
+[
+  {
+    "type": "ClinicalEvent",
+    "dataTypeId": 9000,
+    "startMs": 1774785600000,
+    "endMs": 1774872000000,
+    "value": 2,
+    "sourceId": 0,
+    "sourceName": "MTSamples/Cardiovascular / Pulmonary",
+    "generationType": "AI_EXTRACTED",
+    "offsetToUtcMinutes": 0,
+    "createdAtMs": 1774745277553,
+    "event_category": "Procedure",
+    "event_description": "Echocardiogram performed revealing left atrial enlargement, mild mitral and tricuspid regurgitation, and trace aortic and pulmonary regurgitation, with normal left ventricular ejection fraction.",
+    "timestamp_confidence": "High",
+    "source_text_quote": "1.  Left atrial enlargement with left atrial diameter of 4.7 cm."
+  }
+]

@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-03-29T00:47:57.554724Z",
+  "input": "Sample Withings Data Export.xlsx - epochDataExport-2026-03-23.csv",
+  "format": "json",
+  "totalRecords": 22244,
+  "timeBounds": {
+    "minStartMs": 1771800780000,
+    "maxEndMs": 1774872000000
+  },
+  "countsByType": {
+    "ActiveBurnedCalories": 5293,
+    "ActivityType": 622,
+    "ActivityTypeDetail1": 75,
+    "ActivityTypeDetail2": 75,
+    "AtrialFibrillationDetection": 4,
+    "BikeBinary": 37,
+    "BloodPressureDiastolic": 8,
+    "BloodPressureSystolic": 8,
+    "CoveredDistance": 5218,
+    "CoveredDistanceBike": 37,
+    "CoveredDistanceWalk": 38,
+    "HeartRate": 3008,
+    "SleepAwakeBinary": 59,
+    "SleepDeepBinary": 286,
+    "SleepInBedBinary": 671,
+    "SleepLightBinary": 326,
+    "SleepStateBinary": 612,
+    "SPO2": 610,
+    "Steps": 5218,
+    "WalkBinary": 38,
+    "ClinicalEvent": 1
+  },
+  "files": {
+    "events": "events.json",
+    "perType": {
+      "ActiveBurnedCalories": "type_activeburnedcalories.json",
+      "Steps": "type_steps.json",
+      "WalkBinary": "type_walkbinary.json",
+      "HeartRate": "type_heartrate.json",
+      "CoveredDistance": "type_covereddistance.json",
+      "ActivityType": "type_activitytype.json",
+      "SPO2": "type_spo2.json",
+      "SleepLightBinary": "type_sleeplightbinary.json",
+      "SleepStateBinary": "type_sleepstatebinary.json",
+      "SleepInBedBinary": "type_sleepinbedbinary.json",
+      "SleepDeepBinary": "type_sleepdeepbinary.json",
+      "SleepAwakeBinary": "type_sleepawakebinary.json",
+      "ActivityTypeDetail1": "type_activitytypedetail1.json",
+      "ActivityTypeDetail2": "type_activitytypedetail2.json",
+      "CoveredDistanceWalk": "type_covereddistancewalk.json",
+      "BloodPressureDiastolic": "type_bloodpressurediastolic.json",
+      "CoveredDistanceBike": "type_covereddistancebike.json",
+      "BloodPressureSystolic": "type_bloodpressuresystolic.json",
+      "BikeBinary": "type_bikebinary.json",
+      "AtrialFibrillationDetection": "type_atrialfibrillationdetection.json",
+      "ClinicalEvent": "type_clinicalevent.json"
+    }
+  }
+}

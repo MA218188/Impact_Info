@@ -1,0 +1,14 @@
+stagingAuthID: E5UjuStPlZJVDzU6
+stagingAuthSecret: vfM6y71xABjuyejPbQNuGDscIaR13Ez4CTethEn6H7T0ECAaFpOvWqoTFgtPZsge
+
+prodAuthId: Fis4FXE7JIBioBNF
+prodAuthSecret: 5ah2XbZhp2CFJj9ktSHsgpK8tr9XSQv5xhsIp0a1Y8EudlmfWz1REgrqadY6qNBC
+
+
+user: meddevhackathon-api
+password: wXGbFrGa1L2wfySO
+
+
+Nexus and Gitlab WebAuth:
+username: thryve-sdk-access
+password: CVrH7QPE4nFw8B62

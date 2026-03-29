@@ -1,0 +1,10 @@
+[
+{"type": "BloodPressureSystolic", "dataTypeId": 3301, "startMs": 1773258276000, "endMs": null, "value": 137, "sourceId": 8, "sourceName": "Nokia", "generationType": "-", "offsetToUtcMinutes": 60, "createdAtMs": 1773258351000},
+{"type": "BloodPressureSystolic", "dataTypeId": 3301, "startMs": 1773258433000, "endMs": null, "value": 127, "sourceId": 8, "sourceName": "Nokia", "generationType": "-", "offsetToUtcMinutes": 60, "createdAtMs": 1773258500000},
+{"type": "BloodPressureSystolic", "dataTypeId": 3301, "startMs": 1773350741000, "endMs": null, "value": 141, "sourceId": 8, "sourceName": "Nokia", "generationType": "-", "offsetToUtcMinutes": 60, "createdAtMs": 1773350852000},
+{"type": "BloodPressureSystolic", "dataTypeId": 3301, "startMs": 1773605616000, "endMs": null, "value": 129, "sourceId": 8, "sourceName": "Nokia", "generationType": "-", "offsetToUtcMinutes": 60, "createdAtMs": 1773605691000},
+{"type": "BloodPressureSystolic", "dataTypeId": 3301, "startMs": 1773525113000, "endMs": null, "value": 138, "sourceId": 8, "sourceName": "Nokia", "generationType": "-", "offsetToUtcMinutes": 60, "createdAtMs": 1773525188000},
+{"type": "BloodPressureSystolic", "dataTypeId": 3301, "startMs": 1773525046000, "endMs": null, "value": 138, "sourceId": 8, "sourceName": "Nokia", "generationType": "-", "offsetToUtcMinutes": 60, "createdAtMs": 1773525122000},
+{"type": "BloodPressureSystolic", "dataTypeId": 3301, "startMs": 1773350841000, "endMs": null, "value": 135, "sourceId": 8, "sourceName": "Nokia", "generationType": "-", "offsetToUtcMinutes": 60, "createdAtMs": 1773350906000},
+{"type": "BloodPressureSystolic", "dataTypeId": 3301, "startMs": 1773258490000, "endMs": null, "value": 132, "sourceId": 8, "sourceName": "Nokia", "generationType": "-", "offsetToUtcMinutes": 60, "createdAtMs": 1773258584000}
+]

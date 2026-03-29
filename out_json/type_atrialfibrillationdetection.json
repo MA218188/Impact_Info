@@ -1,0 +1,6 @@
+[
+{"type": "AtrialFibrillationDetection", "dataTypeId": 3120, "startMs": 1773928820000, "endMs": null, "value": false, "sourceId": 8, "sourceName": "Nokia", "generationType": "-", "offsetToUtcMinutes": "-", "createdAtMs": 1773928867000},
+{"type": "AtrialFibrillationDetection", "dataTypeId": 3120, "startMs": 1773766461000, "endMs": null, "value": false, "sourceId": 8, "sourceName": "Nokia", "generationType": "-", "offsetToUtcMinutes": "-", "createdAtMs": 1773928710000},
+{"type": "AtrialFibrillationDetection", "dataTypeId": 3120, "startMs": 1773928820000, "endMs": 1773928851000, "value": false, "sourceId": 8, "sourceName": "Nokia", "generationType": "MANUAL_MEASUREMENT", "offsetToUtcMinutes": "-", "createdAtMs": 1774010123000},
+{"type": "AtrialFibrillationDetection", "dataTypeId": 3120, "startMs": 1773939940000, "endMs": 1773939971000, "value": false, "sourceId": 8, "sourceName": "Nokia", "generationType": "MANUAL_MEASUREMENT", "offsetToUtcMinutes": "-", "createdAtMs": 1774010123000}
+]
