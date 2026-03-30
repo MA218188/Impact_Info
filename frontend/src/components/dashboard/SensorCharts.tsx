@@ -269,11 +269,6 @@ function buildXTicks(domain: [number, number]): number[] {
   return ticks;
 }
 
-const fmtLabel = (_label: unknown, payload?: Array<{ payload?: { x?: number } }>) => {
-  const x = payload?.[0]?.payload?.x;
-  return x != null ? fmtDate(x) : "";
-};
-
 function InterpolatedTooltip({
   active,
   label,
@@ -355,14 +350,7 @@ function ClinicalDot(props: { cx?: number; cy?: number; payload?: { y?: number; 
   const { cx, cy, payload } = props;
   if (cx == null || cy == null) return null;
   const fill = SEVERITY_COLOR(payload?.y ?? 1);
-  const hasDoc = payload?.documentId != null;
-  return (
-    <circle
-      cx={cx} cy={cy} r={5} fill={fill} stroke="#fff" strokeWidth={1}
-      style={hasDoc ? { cursor: "pointer" } : undefined}
-      onClick={hasDoc ? () => window.open(`/api/documents/${payload!.documentId}`, "_blank") : undefined}
-    />
-  );
+  return <circle cx={cx} cy={cy} r={5} fill={fill} stroke="#fff" strokeWidth={1} />;
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -504,9 +492,9 @@ const SensorCharts = ({ selectedPatient, xTicks, domain: domainFromParent }: Pro
             <YAxis yAxisId="hr" hide domain={hrDomain} />
             <YAxis yAxisId="spo2" hide orientation="right" domain={spo2Domain} />
             <Tooltip
-              content={({ active, label }) => {
-                const x = typeof label === "number" ? label : Number(label);
-                if (!Number.isFinite(x)) return null;
+              content={({ active, payload }) => {
+                const x = payload?.[0]?.payload?.x as number | undefined;
+                if (!active || x == null || !Number.isFinite(x)) return null;
                 return (
                   <InterpolatedTooltip
                     active={active}
@@ -535,9 +523,9 @@ const SensorCharts = ({ selectedPatient, xTicks, domain: domainFromParent }: Pro
             {grid} <XAx domain={domain} ticks={axisTicks} />
             <YAxis hide />
             <Tooltip
-              content={({ active, label }) => {
-                const x = typeof label === "number" ? label : Number(label);
-                if (!Number.isFinite(x)) return null;
+              content={({ active, payload }) => {
+                const x = payload?.[0]?.payload?.x as number | undefined;
+                if (!active || x == null || !Number.isFinite(x)) return null;
                 return (
                   <InterpolatedTooltip
                     active={active}
@@ -564,9 +552,9 @@ const SensorCharts = ({ selectedPatient, xTicks, domain: domainFromParent }: Pro
             {grid} <XAx domain={domain} ticks={axisTicks} />
             <YAxis hide domain={[-0.5, 3.5]} ticks={[0, 1, 2, 3]} />
             <Tooltip
-              content={({ active, label }) => {
-                const x = typeof label === "number" ? label : Number(label);
-                if (!Number.isFinite(x)) return null;
+              content={({ active, payload }) => {
+                const x = payload?.[0]?.payload?.x as number | undefined;
+                if (!active || x == null || !Number.isFinite(x)) return null;
                 const stateValue = interpolateStepAfter(hypnoData, x);
                 const stateLabel = stateValue == null
                   ? null
@@ -621,7 +609,16 @@ const SensorCharts = ({ selectedPatient, xTicks, domain: domainFromParent }: Pro
               }}
             />
             {bands}
-            <Scatter dataKey="y" shape={<ClinicalDot />} {...NO_ANIM} />
+            <Scatter
+              dataKey="y"
+              shape={<ClinicalDot />}
+              cursor="pointer"
+              onClick={(data: { payload?: { documentId?: number | null } }) => {
+                const docId = data?.payload?.documentId;
+                if (docId != null) window.open(`/api/documents/${docId}`, "_blank");
+              }}
+              {...NO_ANIM}
+            />
           </ComposedChart>
         </ResponsiveContainer>
       </Panel>

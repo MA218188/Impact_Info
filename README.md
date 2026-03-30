@@ -103,7 +103,13 @@ The frontend runs on `http://localhost:8080` and proxies API requests to port `8
 
 ### Backend
 
-From `backend/`:
+First, ensure you install the required Python dependencies. From the `backend/` directory, run:
+
+```bash
+pip install -r requirements.txt
+```
+
+Then run:
 
 ```bash
 uvicorn api:app --reload --port 8000

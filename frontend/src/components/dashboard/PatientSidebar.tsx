@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Search, Menu } from "lucide-react";
 import type { DataLayerKey } from "@/pages/Index";
+import logoImg from "@/assets/logo.png";
 
 const patients = [
   { name: "Müller, Hans-Georg", age: 64, dept: "Cardiology", color: "#A32D2D", active: true },
@@ -43,7 +44,7 @@ const PatientSidebar = ({ collapsed, onToggle, selectedPatient, onSelectPatient,
         collapsed ? "w-12 min-w-12" : "w-[220px] min-w-[220px]"
       }`}
     >
-      {/* Toggle */}
+      {/* Logo + Toggle */}
       <div className="flex items-center gap-2 px-3 py-3 border-b border-border/60">
         <button
           onClick={onToggle}
@@ -52,9 +53,12 @@ const PatientSidebar = ({ collapsed, onToggle, selectedPatient, onSelectPatient,
           <Menu className="w-3.5 h-3.5" />
         </button>
         {!collapsed && (
-          <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
-            Patients
-          </span>
+          <div className="flex items-center gap-2">
+            <img src={logoImg} alt="Impact Info" className="h-5 w-auto" />
+            <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+              Patients
+            </span>
+          </div>
         )}
       </div>
 
